@@ -17,13 +17,20 @@ parser.add_argument("-O", "--max-tokens", type=int, default=500,
 
 parser.add_argument("--port", type=int, default=8000, help="openai api port, default is 8000")
 
+parser.add_argument("--perf", action="store_true", default=False)
+parser.add_argument("--debug", action="store_true", default=False)
 
 if __name__ == "__main__":
     args = parser.parse_args()
     os.system(f"python3 gen.py -T {args.tokenizer} -L {args.input_length}")
-    os.system(f"python3 run_single.py -M {args.model}                       \
+    cmd = f"python3 run_single.py -M {args.model}                           \
                                     -N {args.tokenizer}                     \
                                     -D data/data_{args.input_length}.json   \
                                     -P {args.process_num}                   \
                                     --port {args.port}                      \
-                                    -L {args.max_tokens}")
+                                    -L {args.max_tokens}"               
+    if args.perf:
+        cmd += " --perf"
+    if args.debug:
+        cmd += " --debug"
+    os.system(cmd)

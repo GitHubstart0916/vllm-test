@@ -55,8 +55,12 @@ def send_request(client, ret_list, perf_list, model, prompt, echo=False, stream=
         max_tokens=args.max_tokens)
     end_ns = time.perf_counter_ns()
     tokens = completion.usage.completion_tokens
-    # if args.debug:
-    # print(completion.choices)
+    if args.debug:
+        s=json.dumps(completion,ensure_ascii=False,default=lambda obj:obj.__dict__)
+        ss = json.loads(s)
+        with open(f"log/return_completion.json", "w") as f:
+            json.dump(ss, f, indent=4, ensure_ascii=False)
+    # print()
     ret_list.append(completion.choices[0].text)
     perf_list.append((tokens, (end_ns - start_ns)/1000.0/1000.0))
     # print(completion.usage.prompt_tokens, tokens, (end_ns - start_ns)/1000.0/1000.0)
