@@ -30,6 +30,7 @@ parser.add_argument("-B", "--debug", action="store_true", default=False,
 parser.add_argument("-T", "--temperature", type=float, default=0.0,
                         help="random magic number, default is 0 mean there is no random")
 
+parser.add_argument("--port", type=int, default=8000, help="openai api port, default is 8000")
 parser.add_argument("--perf", action="store_true", default=False)
 
 openai_api_key = "EMPTY"
@@ -55,7 +56,7 @@ def send_request(client, ret_list, perf_list, model, prompt, echo=False, stream=
     end_ns = time.perf_counter_ns()
     tokens = completion.usage.completion_tokens
     # if args.debug:
-    #     print(completion.choices[0].text)
+    # print(completion.choices)
     ret_list.append(completion.choices[0].text)
     perf_list.append((tokens, (end_ns - start_ns)/1000.0/1000.0))
     # print(completion.usage.prompt_tokens, tokens, (end_ns - start_ns)/1000.0/1000.0)
@@ -67,7 +68,7 @@ if __name__ == "__main__":
     perf_list = manager.list()
     args = parser.parse_args()
     pool_size = args.process_num
-    
+    openai_api_base = f"http://localhost:{args.port}/v1"
     print(f"run on args: {args}")
     model = args.model
     with open(args.dataset) as f:
@@ -88,7 +89,20 @@ if __name__ == "__main__":
                 for t in ret_list:
                     if t != ret_list[0]:
                         statu = "return token different from each other"
+                        # print(t)
+            # print(ret_list[0])
             # print(tok.encode(ret_list[0]))
+            if args.debug:
+                _dict = {}
+                _key_len = len(str(pool_size))
+                for i in range(pool_size):
+                    _dict[str(i).rjust(_key_len, '0')] = ret_list[i]
+                with open(f"log/return_str.json", "w") as f:
+                    json.dump(_dict, f, indent=4, ensure_ascii=False)
+                for i in range(pool_size):
+                    _dict[str(i).rjust(_key_len, '0')] = str(tok.encode(ret_list[i]))
+                with open(f"log/return_tokens.json", "w") as f:
+                    json.dump(_dict, f, indent=4, ensure_ascii=False)
             ave_time = 0.0
             ave_token_per_sec = 0.0
             for a, b in perf_list:

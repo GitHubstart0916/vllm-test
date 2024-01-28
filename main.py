@@ -15,7 +15,15 @@ parser.add_argument("-P", "--process-num", type=int, default=64,
 parser.add_argument("-O", "--max-tokens", type=int, default=500,
                         help="output length, default is 500")
 
+parser.add_argument("--port", type=int, default=8000, help="openai api port, default is 8000")
+
+
 if __name__ == "__main__":
     args = parser.parse_args()
     os.system(f"python3 gen.py -T {args.tokenizer} -L {args.input_length}")
-    os.system(f"python3 run_single.py -M {args.model} -N {args.tokenizer} -D data/data_{args.input_length}.json -P {args.process_num} -L {args.max_tokens}")
+    os.system(f"python3 run_single.py -M {args.model}                       \
+                                    -N {args.tokenizer}                     \
+                                    -D data/data_{args.input_length}.json   \
+                                    -P {args.process_num}                   \
+                                    --port {args.port}                      \
+                                    -L {args.max_tokens}")
