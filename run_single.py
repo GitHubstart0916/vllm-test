@@ -10,6 +10,8 @@ import numpy as np
 from typing import AsyncGenerator, List, Tuple
 import json
 import argparse
+from datetime import datetime, timedelta
+import os
 
 # prompt_len output_len, latency
 REQUEST_LATENCY: List[Tuple[int, int, float]] = []
@@ -35,13 +37,13 @@ parser.add_argument("--perf", action="store_true", default=False)
 
 openai_api_key = "EMPTY"
 openai_api_base = "http://localhost:8000/v1"
-def bench_openai(ret_list, perf_list, model, prompt):
+def bench_openai(ret_list, perf_list, completion_list, model, prompt):
     client_t = OpenAI(
         api_key=openai_api_key,
         base_url=openai_api_base,)
-    send_request(client_t, ret_list, perf_list, model, prompt)
+    send_request(client_t, ret_list, perf_list, completion_list, model, prompt)
 
-def send_request(client, ret_list, perf_list, model, prompt, echo=False, stream=False, gene_num=1, logprobs=3):
+def send_request(client, ret_list, perf_list, completion_list, model, prompt, echo=False, stream=False, gene_num=1, logprobs=3):
     # print("send")
     start_ns = time.perf_counter_ns()
     completion = client.completions.create(
@@ -58,9 +60,10 @@ def send_request(client, ret_list, perf_list, model, prompt, echo=False, stream=
     if args.debug:
         s=json.dumps(completion,ensure_ascii=False,default=lambda obj:obj.__dict__)
         ss = json.loads(s)
-        with open(f"log/return_completion.json", "w") as f:
+        with open(f"log/{time_str}/return_completion.json", "w") as f:
             json.dump(ss, f, indent=4, ensure_ascii=False)
     # print()
+    completion_list.append(completion)
     ret_list.append(completion.choices[0].text)
     perf_list.append((tokens, (end_ns - start_ns)/1000.0/1000.0))
     # print(completion.usage.prompt_tokens, tokens, (end_ns - start_ns)/1000.0/1000.0)
@@ -70,11 +73,17 @@ if __name__ == "__main__":
     manager = Manager()
     ret_list = manager.list()
     perf_list = manager.list()
+    completion_list = manager.list()
     args = parser.parse_args()
     pool_size = args.process_num
     openai_api_base = f"http://localhost:{args.port}/v1"
     print(f"run on args: {args}")
     model = args.model
+    time_str = (datetime.now() + timedelta(hours=8)).strftime("%Y_%m_%d_%H_%M_%S")
+    if args.debug:
+        # print("mkdir")
+        # os.system(f"mkdir -p log/{time_str}")
+        os.system(f"mkdir -p log/{time_str}/completion")
     with open(args.dataset) as f:
         dataset = json.load(f)
         for data in dataset:
@@ -83,7 +92,7 @@ if __name__ == "__main__":
             # send_request(model=model, prompt=prompt)
         tok = AutoTokenizer.from_pretrained(args.tokenizer)
         with Pool(pool_size) as p:
-            p_args = [(ret_list, perf_list, model, prompt) for _ in range(pool_size)]
+            p_args = [(ret_list, perf_list, completion_list, model, prompt) for _ in range(pool_size)]
             # print(len(args))
             results = p.starmap(bench_openai, p_args)
             p.close()
@@ -101,12 +110,17 @@ if __name__ == "__main__":
                 _key_len = len(str(pool_size))
                 for i in range(pool_size):
                     _dict[str(i).rjust(_key_len, '0')] = ret_list[i]
-                with open(f"log/return_str.json", "w") as f:
+                with open(f"log/{time_str}/return_str.json", "w") as f:
                     json.dump(_dict, f, indent=4, ensure_ascii=False)
                 for i in range(pool_size):
                     _dict[str(i).rjust(_key_len, '0')] = str(tok.encode(ret_list[i]))
-                with open(f"log/return_tokens.json", "w") as f:
+                with open(f"log/{time_str}/return_tokens.json", "w") as f:
                     json.dump(_dict, f, indent=4, ensure_ascii=False)
+                for i in range(pool_size):
+                    s=json.dumps(completion_list[i],ensure_ascii=False,default=lambda obj:obj.__dict__)
+                    ss = json.loads(s)
+                    with open(f"log/{time_str}/completion/return_completion_{i}.json", "w") as f:
+                        json.dump(ss, f, indent=4, ensure_ascii=False)
             ave_time = 0.0
             ave_token_per_sec = 0.0
             for a, b in perf_list:
