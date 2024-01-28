@@ -17,6 +17,8 @@ parser = argparse.ArgumentParser(
         description="request dataset by defined pool size and max tokens")
 parser.add_argument("-D", "--dataset", type=str, required=True,
                         help="Path to the dataset.")
+parser.add_argument("-M", "--model", type=str, required=True,
+                        help="model name")
 parser.add_argument("-P", "--process-num", type=int, default=64,
                         help="process num, default is 64")
 parser.add_argument("-L", "--max-tokens", type=int, default=500,
@@ -65,11 +67,11 @@ if __name__ == "__main__":
     pool_size = args.process_num
     
     print(f"run on args: {args}")
-        
+    model = args.model
     with open(args.dataset) as f:
         dataset = json.load(f)
         for data in dataset:
-            model = data["model"]
+            # model = data["model"]
             prompt = data["prompt"]
             # send_request(model=model, prompt=prompt)
         tok = AutoTokenizer.from_pretrained(model)

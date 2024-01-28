@@ -4,10 +4,10 @@ import json
 parser = argparse.ArgumentParser(
     "generator token size most close to input -L|--length"
 )
-parser.add_argument("-M", "--model", type=str, required=True,
-                        help="Path to the model.")
+parser.add_argument("-T", "--tokenizer", type=str, required=True,
+                        help="Path to the Tokenizer")
 parser.add_argument("-L", "--length", type=int, required=True,
-                        help="output token size")
+                        help="input token size")
 parser.add_argument("-B", "--base", type=str, default="data/base.txt",
                         help="path to the generator base txt")
 
@@ -29,9 +29,9 @@ def get(x):
 if __name__ == "__main__":
     log = []
     args = parser.parse_args()
-    model = args.model
+    tokenizer = args.tokenizer
     tar = args.length
-    tok = AutoTokenizer.from_pretrained(model)
+    tok = AutoTokenizer.from_pretrained(tokenizer)
     f = open(args.base, "r")
     s = f.readline()
     ret = s[0:get(tar)]
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     file_name = f"data/data_{args.length}.json"
     log.append(
         {
-            "model": model,
+            # "model": model,
             "prompt": ret,
         }
     )
