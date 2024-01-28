@@ -17,6 +17,8 @@ parser = argparse.ArgumentParser(
         description="request dataset by defined pool size and max tokens")
 parser.add_argument("-D", "--dataset", type=str, required=True,
                         help="Path to the dataset.")
+parser.add_argument("-N", "--tokenizer", type=str, required=True,
+                        help="Path to the Tokenizer")
 parser.add_argument("-M", "--model", type=str, required=True,
                         help="model name")
 parser.add_argument("-P", "--process-num", type=int, default=64,
@@ -74,7 +76,7 @@ if __name__ == "__main__":
             # model = data["model"]
             prompt = data["prompt"]
             # send_request(model=model, prompt=prompt)
-        tok = AutoTokenizer.from_pretrained(model)
+        tok = AutoTokenizer.from_pretrained(args.tokenizer)
         with Pool(pool_size) as p:
             p_args = [(ret_list, perf_list, model, prompt) for _ in range(pool_size)]
             # print(len(args))

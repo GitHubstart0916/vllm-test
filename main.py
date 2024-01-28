@@ -17,5 +17,5 @@ parser.add_argument("-O", "--max-tokens", type=int, default=500,
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    os.system(f"python gen.py -T {args.tokenizer} -L {args.input_length}")
-    os.system(f"python run_single.py -M {args.model} -D data/data_{args.input_length}.json -P {args.process_num} -L {args.max_tokens}")
+    os.system(f"python3 gen.py -T {args.tokenizer} -L {args.input_length}")
+    os.system(f"python3 run_single.py -M {args.model} -N {args.tokenizer} -D data/data_{args.input_length}.json -P {args.process_num} -L {args.max_tokens}")
