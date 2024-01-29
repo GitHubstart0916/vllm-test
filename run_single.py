@@ -11,6 +11,7 @@ from typing import AsyncGenerator, List, Tuple
 import json
 import argparse
 from datetime import datetime, timedelta
+import pytz
 import os
 
 # prompt_len output_len, latency
@@ -57,11 +58,11 @@ def send_request(client, ret_list, perf_list, completion_list, model, prompt, ec
         max_tokens=args.max_tokens)
     end_ns = time.perf_counter_ns()
     tokens = completion.usage.completion_tokens
-    if args.debug:
-        s=json.dumps(completion,ensure_ascii=False,default=lambda obj:obj.__dict__)
-        ss = json.loads(s)
-        with open(f"log/{time_str}/return_completion.json", "w") as f:
-            json.dump(ss, f, indent=4, ensure_ascii=False)
+    # if args.debug:
+    #     s=json.dumps(completion,ensure_ascii=False,default=lambda obj:obj.__dict__)
+    #     ss = json.loads(s)
+    #     with open(f"log/{time_str}/return_completion.json", "w") as f:
+    #         json.dump(ss, f, indent=4, ensure_ascii=False)
     # print()
     completion_list.append(completion)
     ret_list.append(completion.choices[0].text)
@@ -79,10 +80,11 @@ if __name__ == "__main__":
     openai_api_base = f"http://localhost:{args.port}/v1"
     print(f"run on args: {args}")
     model = args.model
-    time_str = (datetime.now() + timedelta(hours=8)).strftime("%Y_%m_%d_%H_%M_%S")
+    tz = pytz.timezone('Asia/Shanghai')
+    time_str = datetime.now(tz).strftime("%Y_%m_%d_%H_%M_%S")
+    os.system(f"mkdir -p log/{time_str}")
     if args.debug:
         # print("mkdir")
-        # os.system(f"mkdir -p log/{time_str}")
         os.system(f"mkdir -p log/{time_str}/completion")
     with open(args.dataset) as f:
         dataset = json.load(f)
@@ -151,9 +153,9 @@ if __name__ == "__main__":
                     "average_latency": ave_time,
                     "token_per_sec": ave_token_per_sec
                 }
-            with open(f"log/in_{input_len}_out_{output_len}_process_{pool_size}.json", "w") as f:
+            with open(f"log/{time_str}/in_{input_len}_out_{output_len}_process_{pool_size}.json", "w") as f:
                 json.dump(log, f, indent=4, ensure_ascii=False)
-            print(statu + f" and log in log/in_{input_len}_out_{output_len}_process_{pool_size}.json")
+            print(statu + f" and log in log/{time_str}/in_{input_len}_out_{output_len}_process_{pool_size}.json")
             if args.perf:
                 print(f"average_latency: {ave_time}\ntoken_per_sec: {ave_token_per_sec}")
             # print(out_tokens)

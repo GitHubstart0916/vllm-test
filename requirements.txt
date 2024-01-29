@@ -1,0 +1,4 @@
+numpy==1.24.3
+openai==1.10.0
+pytz==2023.3.post1
+transformers==4.36.0
