@@ -2,7 +2,7 @@ import argparse
 import json
 import os
 parser = argparse.ArgumentParser(
-    "generator token size most close to input -L|--length"
+    "python3 main.py"
 )
 parser.add_argument("-T", "--tokenizer", type=str, required=True,
                         help="Path to the Tokenizer")
@@ -16,11 +16,12 @@ parser.add_argument("-O", "--max-tokens", type=int, default=500,
                         help="output length, default is 500")
 parser.add_argument("-D", "--dataset", type=str, default="",
                         help="can set this to specify dataset, when set -I/--input_len is useless")
-
-parser.add_argument("--port", type=int, default=8000, help="openai api port, default is 8000")
-
-parser.add_argument("--perf", action="store_true", default=False)
-parser.add_argument("--debug", action="store_true", default=False)
+parser.add_argument("--port", type=int, default=8000, 
+                        help="openai api port, default is 8000")
+parser.add_argument("--perf", action="store_true", default=False,
+                        help="whether analysize performence")
+parser.add_argument("--debug", action="store_true", default=False,
+                        help="whether print debug log")
 
 if __name__ == "__main__":
     args = parser.parse_args()
