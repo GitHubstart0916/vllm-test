@@ -22,6 +22,8 @@ parser.add_argument("--perf", action="store_true", default=False,
                         help="whether analysize performence")
 parser.add_argument("--debug", action="store_true", default=False,
                         help="whether print debug log")
+parser.add_argument("--stream", action="store_true", default=False,
+                        help="whether use stream model")
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -43,4 +45,6 @@ if __name__ == "__main__":
         cmd += " --perf"
     if args.debug:
         cmd += " --debug"
+    if args.stream:
+        cmd += " --stream"
     os.system(cmd)

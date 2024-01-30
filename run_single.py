@@ -35,6 +35,7 @@ parser.add_argument("-T", "--temperature", type=float, default=0.0,
 
 parser.add_argument("--port", type=int, default=8000, help="openai api port, default is 8000")
 parser.add_argument("--perf", action="store_true", default=False)
+parser.add_argument("--stream", action="store_true", default=False)
 
 openai_api_key = "EMPTY"
 openai_api_base = "http://localhost:8000/v1"
@@ -52,22 +53,27 @@ def send_request(client, ret_list, perf_list, completion_list, model, prompt, ec
         prompt=prompt,
         echo=echo,
         n=gene_num,
-        stream=stream,
+        stream=args.stream,
         logprobs=logprobs,
         temperature=args.temperature,
         max_tokens=args.max_tokens)
-    end_ns = time.perf_counter_ns()
-    tokens = completion.usage.completion_tokens
-    # if args.debug:
-    #     s=json.dumps(completion,ensure_ascii=False,default=lambda obj:obj.__dict__)
-    #     ss = json.loads(s)
-    #     with open(f"log/{time_str}/return_completion.json", "w") as f:
-    #         json.dump(ss, f, indent=4, ensure_ascii=False)
-    # print()
-    completion_list.append(completion)
-    ret_list.append(completion.choices[0].text)
-    perf_list.append((tokens, (end_ns - start_ns)/1000.0/1000.0))
-    # print(completion.usage.prompt_tokens, tokens, (end_ns - start_ns)/1000.0/1000.0)
+    if not args.stream:
+        end_ns = time.perf_counter_ns()
+        tokens = completion.usage.completion_tokens
+        completion_list.append(completion)
+        ret_list.append(completion.choices[0].text)
+        perf_list.append((tokens, (end_ns - start_ns)/1000.0/1000.0))
+    else:
+        t = []
+        text = ""
+        for c in completion:
+            t.append(c)
+            text += c.choices[0].text
+        end_ns = time.perf_counter_ns()
+        tokens = t[-1].usage.completion_tokens
+        completion_list.append(t)
+        ret_list.append(text)
+        perf_list.append((tokens, (end_ns - start_ns)/1000.0/1000.0))
 
 
 if __name__ == "__main__":
@@ -135,6 +141,7 @@ if __name__ == "__main__":
             output_len = perf_list[0][0]
             if not args.perf:
                 log = {
+                    "stream": args.stream,
                     "input_len": input_len,
                     "max_tokens": output_len,
                     "recive_tokens_len": len(tokens),
@@ -144,6 +151,7 @@ if __name__ == "__main__":
                 }
             else:
                 log = {
+                    "stream": args.stream,
                     "input_len": input_len,
                     "max_tokens": output_len,
                     "recive_tokens_len": len(tokens),

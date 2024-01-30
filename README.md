@@ -8,7 +8,7 @@
 ### usage
 
 ```shell
-usage: python3 main.py [-h] -T TOKENIZER [-I INPUT_LENGTH] -M MODEL [-P PROCESS_NUM] [-O MAX_TOKENS] [-D DATASET] [--port PORT] [--perf] [--debug]
+usage: python3 main.py [-h] -T TOKENIZER [-I INPUT_LENGTH] -M MODEL [-P PROCESS_NUM] [-O MAX_TOKENS] [-D DATASET] [--port PORT] [--perf] [--debug] [--stream]
 
 options:
   -h, --help            show this help message and exit
@@ -27,6 +27,7 @@ options:
   --port PORT           openai api port, default is 8000
   --perf                whether analysize performence
   --debug               whether print debug log
+  --stream              whether use stream model
 ```
 
 ### example
